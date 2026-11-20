@@ -161,6 +161,8 @@ go test ./codegen -v          # assembles and executes native test programs
   by zero, deep recursion and clean stack overflow.
 - Native: expressions, int64 edges, functions, nested calls, recursion,
   control flow, short circuit, ELF verification, all five golden examples.
+  The golden test builds each example **twice** — through `as`/`ld` and through
+  the direct ELF writer — and requires both binaries to match the interpreter.
 
 ## Native backend notes
 
@@ -171,6 +173,9 @@ go test ./codegen -v          # assembles and executes native test programs
   Argument `i` is at `[rbp+16+8*i]`, local `n` at `[rbp-8*n]`, result in `rax`.
 - User functions are emitted as `anvil_fn_<name>` so they cannot collide with
   the runtime routines or `_start`.
+- Loading a signed 64-bit immediate must use `REX.W + C7 /0 id` (48 C7 C0),
+  not `B8 id`: the latter writes EAX and zero-extends, so `-7` would become
+  `4294967289`. The direct-ELF golden leg caught this exact bug.
 - `print_int` converts the magnitude using unsigned division, so it handles
   `MinInt64` without overflowing during negation.
 - `anvil/elfgen`: the built-in assembler and ELF writer. It encodes the

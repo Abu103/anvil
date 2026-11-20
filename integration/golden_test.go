@@ -94,6 +94,23 @@ func TestThreeWayGolden(t *testing.T) {
 			if !bytes.Equal(out, treeOut.Bytes()) {
 				t.Fatalf("native and interpreter disagree:\nnative:\n%s\ninterp:\n%s", out, treeOut.Bytes())
 			}
+
+			// The direct ELF path must produce the same answer. It bypasses
+			// as/ld entirely, so it has its own encoder to get wrong.
+			direct := filepath.Join(binDir, filepath.Base(file[:len(file)-3])+"-direct")
+			if err := codegen.BuildWithOptions(string(src), direct, codegen.Options{DirectELF: true}); err != nil {
+				t.Fatalf("direct ELF build: %v", err)
+			}
+			dout, err := exec.Command(direct).Output()
+			if err != nil {
+				t.Fatalf("running direct ELF binary: %v", err)
+			}
+			if !bytes.Equal(dout, want) {
+				t.Fatalf("direct ELF output:\n%s\nwant:\n%s", dout, want)
+			}
+			if !bytes.Equal(dout, out) {
+				t.Fatalf("direct ELF and as/ld disagree:\ndirect:\n%s\nas/ld:\n%s", dout, out)
+			}
 		})
 	}
 }

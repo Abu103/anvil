@@ -258,7 +258,10 @@ func (p *program) encodeLine(ln line, at int) ([]byte, error) {
 			case dst == "[rsi]" && src == "dl":
 				return []byte{0x88, 0x16}, nil
 			case dst == "rax":
-				b := imm32([]byte{0xB8}, num(src))
+				// B8 imm32 writes EAX and zero-extends into RAX, so negative
+				// immediates would become 4294967289. REX.W + C7 /0 id
+				// sign-extends the imm32, which is what `mov rax, imm` means.
+				b := imm32([]byte{0x48, 0xC7, 0xC0}, num(src))
 				return b, nil
 			case dst == "rdi":
 				b := imm32([]byte{0x48, 0xC7, 0xC7}, num(src))

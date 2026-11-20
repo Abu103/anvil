@@ -83,6 +83,30 @@ func TestBuildWithoutAssembler(t *testing.T) {
 	}
 }
 
+func TestBuildNoAsNegativeNumbers(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("native backend targets x86-64 Linux")
+	}
+	path := filepath.Join(t.TempDir(), "negative.av")
+	src := "print(-7);\nprint(2 - 3 - 4);\nprint(-9223372036854775807 - 1);\n"
+	if err := os.WriteFile(path, []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	bin := filepath.Join(t.TempDir(), "negative")
+	code, _, stderr := invoke("build", "--no-as", path, "-o", bin)
+	if code != 0 {
+		t.Fatalf("exit = %d, stderr = %q", code, stderr)
+	}
+	out, err := exec.Command(bin).CombinedOutput()
+	if err != nil {
+		t.Fatalf("running binary: %v\n%s", err, out)
+	}
+	want := "-7\n-5\n-9223372036854775808\n"
+	if string(out) != want {
+		t.Fatalf("direct ELF output = %q, want %q", out, want)
+	}
+}
+
 func TestBuildNeedsOutputPath(t *testing.T) {
 	code, _, stderr := invoke("build", "examples/arith.av")
 	if code != 2 || !strings.Contains(stderr, "-o") {

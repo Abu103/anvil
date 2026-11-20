@@ -242,6 +242,14 @@ and the caller subtracted it again. The five-example golden test caught it as a
 segmentation fault rather than a wrong answer, which is why it was fixed from
 the disassembly instead of by guessing.
 
+A second bug appeared after the first golden run: `B8 imm32` writes EAX and
+zero-extends into RAX, so negative constants printed as large positive numbers.
+The `as`/`ld` path was correct because GNU `as` picks a sign-extending encoding
+for the same source. The fix was `48 C7 C0 imm32`, pinned by a dedicated CLI
+test and by a new `--no-as` leg in the golden test. Both bugs make the same
+point: test the exact path the user runs, and compare against an independent
+oracle instead of trusting a check that does not reach that path.
+
 Remaining future work:
 
 1. A tiny register allocator for expression temporaries, replacing push/pop
@@ -372,9 +380,10 @@ for its own sake; it is the place where independent implementations meet.
 
 ### Appendix F: reproducibility and threats to validity
 
-Every reported number can be reproduced from a clean checkout. The toolchain
-used was Go 1.24.4, GNU binutils 2.44 and WSL 2 with a Debian root filesystem
-on an i5-1135G7 with two cores. `go test ./... -count=1` runs every test from
+Every reported number can be reproduced from a clean checkout. `go.mod`
+declares `go 1.22`; the suite passes with Go 1.24.4 in WSL and Go 1.27 on
+Windows. The toolchain used for the benchmark numbers was GNU binutils 2.44 and
+WSL 2 with a Debian root filesystem on an i5-1135G7 with two cores. `go test ./... -count=1` runs every test from
 scratch, including the native tests that assemble, link and execute binaries
 in temporary directories. The benchmarks use `-count=5 -benchtime=1x` and the
 medians are given in section 5; a single run on a busier machine can differ by
