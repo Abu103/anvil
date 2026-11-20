@@ -1,0 +1,10 @@
+// Precedence, associativity, truncating division, wrapping and bool logic.
+print(1 + 2 * 3);
+print((1 + 2) * 3);
+print(10 / 3);
+print(-7 / 2);
+print(2 - 3 - 4);
+print(1 + 2 < 4);
+print(true && false);
+print(!false || false);
+print(9223372036854775807 + 1);

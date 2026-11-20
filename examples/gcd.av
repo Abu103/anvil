@@ -1,0 +1,14 @@
+// Euclid's algorithm. Anvil has no % operator, so the remainder is
+// computed as a - (a / b) * b.
+fn gcd(a: int, b: int) -> int {
+  while (b != 0) {
+    let t: int = b;
+    b = a - (a / b) * b;
+    a = t;
+  }
+  return a;
+}
+
+print(gcd(1071, 462));
+print(gcd(270, 192));
+print(gcd(17, 5));

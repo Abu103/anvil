@@ -1,0 +1,26 @@
+// Count the primes below 10000 with a trial-division function and nested
+// loops. Remainder again comes from n - (n / d) * d.
+fn isPrime(n: int) -> bool {
+  if (n < 2) {
+    return false;
+  }
+  let d: int = 2;
+  while (d * d <= n) {
+    if (n - (n / d) * d == 0) {
+      return false;
+    }
+    d = d + 1;
+  }
+  return true;
+}
+
+let n: int = 0;
+let count: int = 0;
+while (n < 10000) {
+  if (isPrime(n)) {
+    count = count + 1;
+  }
+  n = n + 1;
+}
+
+print(count);
